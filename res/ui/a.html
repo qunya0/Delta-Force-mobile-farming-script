@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>配置界面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 10px;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 14px 14px 18px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        /* 标题行 */
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+        }
+        .section-title .badge {
+            background: #e8eaf6;
+            color: #3949ab;
+            font-size: 12px;
+            padding: 0 10px;
+            border-radius: 12px;
+            font-weight: 500;
+            line-height: 22px;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 7px 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 3px solid #bdbdbd;
+            transition: border-color 0.3s;
+            font-size: 13px;
+            color: #1a1a2e;
+        }
+        .status-bar .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #bdbdbd;
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+        .status-bar .dot.success {
+            background: #2e7d32;
+        }
+        .status-bar .dot.error {
+            background: #c62828;
+        }
+        .status-bar .dot.waiting {
+            background: #f9a825;
+            animation: pulse 0.9s infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.25;
+            }
+        }
+
+        /* 账号列表 */
+        #accountList {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        #accountList::-webkit-scrollbar {
+            width: 4px;
+        }
+        #accountList::-webkit-scrollbar-thumb {
+            background: #c5cae9;
+            border-radius: 4px;
+        }
+
+        .account-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+            animation: fadeIn 0.2s ease;
+        }
+        .account-row:last-child {
+            border-bottom: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .account-row .index {
+            min-width: 24px;
+            font-weight: 600;
+            color: #5c6bc0;
+            font-size: 13px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .account-row input {
+            flex: 1;
+            padding: 7px 10px;
+            border: 1.5px solid #e8eaf6;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+            background: #fafafa;
+            min-width: 0;
+            width: 100%;
+        }
+        .account-row input:focus {
+            outline: none;
+            border-color: #5c6bc0;
+            background: #ffffff;
+        }
+        .account-row input:invalid {
+            border-color: #ef5350;
+        }
+
+        .account-row .del-btn {
+            background: none;
+            border: none;
+            color: #bdbdbd;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .account-row .del-btn:hover,
+        .account-row .del-btn:active {
+            color: #ef5350;
+        }
+
+        .empty-hint {
+            text-align: center;
+            color: #bdbdbd;
+            font-size: 13px;
+            padding: 18px 0;
+        }
+
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin: 2px 0 4px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            background: #e8eaf6;
+            color: #3949ab;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .btn-danger:active {
+            background: #ffcdd2;
+        }
+
+        .btn-success {
+            background: #1a73e8;
+            color: #ffffff;
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            margin-top: 12px;
+            border-radius: 6px;
+        }
+        .btn-success:active {
+            background: #1557b0;
+        }
+
+        hr {
+            margin: 14px 0 12px;
+            border: none;
+            border-top: 1px solid #e8eaf6;
+        }
+
+        /* 配置网格 */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 12px;
+            margin-top: 2px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            position: relative;
+        }
+        .field label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #5c6bc0;
+            letter-spacing: 0.3px;
+        }
+        .field input {
+            padding: 8px 10px;
+            border: 1.5px solid #e8eaf6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            background: #fafafa;
+            width: 100%;
+        }
+        .field input:focus {
+            outline: none;
+            border-color: #5c6bc0;
+            background: #ffffff;
+        }
+
+        /* 自定义下拉 */
+        .custom-select {
+            position: relative;
+            width: 100%;
+            user-select: none;
+        }
+        .custom-select .selected {
+            padding: 8px 10px;
+            border: 1.5px solid #e8eaf6;
+            border-radius: 6px;
+            background: #fafafa;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: border-color 0.2s;
+            min-height: 42px;
+        }
+        .custom-select .selected:after {
+            content: "▾";
+            font-size: 12px;
+            color: #9e9e9e;
+            margin-left: 8px;
+        }
+        .custom-select .selected.active {
+            border-color: #5c6bc0;
+            background: #ffffff;
+        }
+        .custom-select .options {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1.5px solid #e8eaf6;
+            border-radius: 6px;
+            max-height: 140px;
+            overflow-y: auto;
+            z-index: 20;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .custom-select .options.show {
+            display: block;
+        }
+        .custom-select .options .option-item {
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .custom-select .options .option-item:last-child {
+            border-bottom: none;
+        }
+        .custom-select .options .option-item:hover,
+        .custom-select .options .option-item:active {
+            background: #e8eaf6;
+        }
+        .custom-select .options .option-item.selected-opt {
+            background: #e8eaf6;
+            font-weight: 500;
+            color: #3949ab;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a1a2e;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+            max-width: 92%;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+            z-index: 999;
+            text-align: center;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            background: #2e7d32;
+        }
+        .toast.error {
+            background: #c62828;
+        }
+        .toast.info {
+            background: #1a237e;
+        }
+
+        /* 响应式 */
+        @media (max-width: 420px) {
+            body {
+                padding: 6px;
+            }
+            .container {
+                padding: 10px 10px 14px;
+                border-radius: 8px;
+            }
+            .config-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .section-title {
+                font-size: 14px;
+            }
+            .account-row input {
+                font-size: 14px;
+                padding: 6px 8px;
+            }
+            .btn {
+                font-size: 13px;
+                padding: 7px 10px;
+            }
+            .btn-success {
+                padding: 11px;
+                font-size: 14px;
+            }
+            .status-bar {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            .field label {
+                font-size: 11px;
+            }
+            .field input,
+            .custom-select .selected {
+                font-size: 13px;
+                padding: 7px 8px;
+            }
+            .custom-select .options .option-item {
+                padding: 7px 10px;
+                font-size: 13px;
+            }
+            #accountList {
+                max-height: 160px;
+            }
+            .toast {
+                font-size: 12px;
+                padding: 8px 16px;
+                bottom: 16px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .btn-group {
+                flex-direction: column;
+                gap: 6px;
+            }
+            .btn-group .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <!-- 标题 -->
+        <div class="section-title">
+            <span>QQ账号列表</span>
+            <span class="badge" id="countBadge">0 个</span>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar" id="statusBar">
+            <span class="dot" id="statusDot"></span>
+            <span id="statusText">等待连接 Python...</span>
+        </div>
+
+        <!-- 账号列表 -->
+        <div id="accountList">
+            <div class="empty-hint">暂无账号，点击下方添加</div>
+        </div>
+
+        <!-- 账号操作按钮 -->
+        <div class="btn-group">
+            <button class="btn" id="addAccountBtn">添加账号</button>
+            <button class="btn btn-danger" id="clearAllBtn">清空</button>
+        </div>
+
+        <hr>
+
+        <!-- 配置信息 -->
+        <div class="config-grid">
+            <div class="field">
+                <label>子弹型号</label>
+                <input type="text" id="bulletType" placeholder="如 5.56×45" value="5.56×45">
+            </div>
+            <div class="field">
+                <label>技术中心</label>
+                <input type="text" id="techCenter" placeholder="大概率不可用,默认点击置顶" value="">
+            </div>
+            <div class="field">
+                <label>护甲</label>
+                <input type="text" id="armor" placeholder="大概率不可用,默认点击置顶" value="">
+            </div>
+            <div class="field">
+                <label>药品</label>
+                <div class="custom-select" id="medicineSelect">
+                    <div class="selected" id="medicineDisplay">红头修</div>
+                    <div class="options" id="medicineOptions">
+                        <div class="option-item selected-opt" data-value="红头修">红头修</div>
+                        <div class="option-item" data-value="红甲修">红甲修</div>
+                        <div class="option-item" data-value="金头修">金头修</div>
+                        <div class="option-item" data-value="金甲修">金甲修</div>
+                        <div class="option-item" data-value="金大药">金大药</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 保存按钮 -->
+        <button class="btn btn-success" id="saveBtn">保存并传输</button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ---- 状态 ----
+            let idCounter = 0;
+            let accounts = [];
+
+            // ---- DOM ----
+            const listEl = document.getElementById('accountList');
+            const badgeEl = document.getElementById('countBadge');
+            const toastEl = document.getElementById('toast');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const statusBar = document.getElementById('statusBar');
+            let toastTimer = null;
+
+            // 自定义下拉
+            const medicineDisplay = document.getElementById('medicineDisplay');
+            const medicineOptions = document.getElementById('medicineOptions');
+            const optionItems = medicineOptions.querySelectorAll('.option-item');
+            let medicineValue = '红头修';
+
+            // ---- Toast ----
+            function showToast(message, type, duration) {
+                type = type || 'info';
+                duration = duration || 2000;
+                if (toastTimer) {
+                    clearTimeout(toastTimer);
+                    toastEl.classList.remove('show', 'success', 'error', 'info');
+                }
+                toastEl.textContent = message;
+                toastEl.className = 'toast ' + type;
+                void toastEl.offsetWidth;
+                toastEl.classList.add('show');
+                toastTimer = setTimeout(function() {
+                    toastEl.classList.remove('show');
+                }, duration);
+            }
+
+            // ---- 状态栏 ----
+            function updateStatus(status, message) {
+                statusDot.className = 'dot';
+                if (status === 'success') {
+                    statusDot.classList.add('success');
+                    statusText.textContent = message;
+                    statusBar.style.borderColor = '#2e7d32';
+                } else if (status === 'error') {
+                    statusDot.classList.add('error');
+                    statusText.textContent = message;
+                    statusBar.style.borderColor = '#c62828';
+                } else if (status === 'waiting') {
+                    statusDot.classList.add('waiting');
+                    statusText.textContent = message;
+                    statusBar.style.borderColor = '#f9a825';
+                } else {
+                    statusText.textContent = message;
+                    statusBar.style.borderColor = '#bdbdbd';
+                }
+            }
+
+            // ---- 验证 ----
+            function isValidQQ(qq) {
+                return /^[1-9]\d{4,10}$/.test(qq);
+            }
+
+            function isValidBulletType(val) {
+                if (!val) return true;
+                return /^[A-Za-z0-9.*×xX\s\-/]{2,20}$/.test(val);
+            }
+
+            // ---- 渲染列表 ----
+            function renderList() {
+                if (accounts.length === 0) {
+                    listEl.innerHTML = '<div class="empty-hint">暂无账号，点击下方添加</div>';
+                    badgeEl.textContent = '0 个';
+                    return;
+                }
+                let html = '';
+                accounts.forEach(function(acc, index) {
+                    const isValid = isValidQQ(acc.qq);
+                    const style = (acc.qq && !isValid) ?
+                        ' style="border-color:#ef5350;background:#fff5f5;"' :
+                        '';
+                    html +=
+                        '<div class="account-row" data-id="' + acc.id + '">' +
+                        '<span class="index">' + (index + 1) + '</span>' +
+                        '<input type="text" class="qq-input" value="' + acc.qq +
+                        '" placeholder="输入QQ号" oninput="updateAccount(' + acc.id + ', this.value)" onfocus="this.select()"' +
+                        style + '>' +
+                        '<button class="del-btn" onclick="removeAccount(' + acc.id + ')" title="删除">×</button>' +
+                        '</div>';
+                });
+                listEl.innerHTML = html;
+                badgeEl.textContent = accounts.length + ' 个';
+            }
+
+            // ---- 添加账号 ----
+            function addAccount(qq) {
+                qq = qq || '';
+                var trimmed = qq.trim();
+                if (trimmed && !isValidQQ(trimmed)) {
+                    showToast('QQ号格式不正确（5-11位数字，不以0开头）', 'error', 2500);
+                    return;
+                }
+                var id = ++idCounter;
+                accounts.push({ id: id, qq: trimmed });
+                renderList();
+                listEl.scrollTop = listEl.scrollHeight;
+                var inputs = listEl.querySelectorAll('.qq-input');
+                if (inputs.length) {
+                    inputs[inputs.length - 1].focus();
+                }
+                showToast('已添加账号', 'success', 1000);
+            }
+
+            // ---- 更新账号 ----
+            window.updateAccount = function(id, value) {
+                var acc = accounts.find(function(a) { return a.id === id; });
+                if (!acc) return;
+                acc.qq = value.trim();
+                var row = document.querySelector('.account-row[data-id="' + id + '"]');
+                if (row) {
+                    var input = row.querySelector('.qq-input');
+                    if (input) {
+                        var isValid = isValidQQ(acc.qq);
+                        if (acc.qq && !isValid) {
+                            input.style.borderColor = '#ef5350';
+                            input.style.background = '#fff5f5';
+                        } else {
+                            input.style.borderColor = '';
+                            input.style.background = '';
+                        }
+                    }
+                }
+            };
+
+            // ---- 删除账号 ----
+            window.removeAccount = function(id) {
+                if (accounts.length <= 1) {
+                    showToast('至少保留一个账号', 'error', 1800);
+                    return;
+                }
+                accounts = accounts.filter(function(a) { return a.id !== id; });
+                renderList();
+                showToast('已删除', 'info', 900);
+            };
+
+            // ---- 清空 ----
+            function clearAllAccounts() {
+                if (accounts.length === 0) {
+                    showToast('列表已为空', 'info', 1200);
+                    return;
+                }
+                if (!confirm('确定清空所有账号吗？')) return;
+                accounts = [];
+                idCounter = 0;
+                renderList();
+                showToast('已清空', 'info', 1200);
+            }
+
+            // ---- 获取数据 ----
+            function getConfigData() {
+                var qqList = [];
+                var invalidQQs = [];
+                accounts.forEach(function(acc) {
+                    var qq = acc.qq.trim();
+                    if (qq) {
+                        if (isValidQQ(qq)) {
+                            qqList.push(qq);
+                        } else {
+                            invalidQQs.push(qq);
+                        }
+                    }
+                });
+
+                var bulletType = document.getElementById('bulletType').value.trim();
+                var techCenter = document.getElementById('techCenter').value.trim();
+                var armor = document.getElementById('armor').value.trim();
+                var medicine = medicineValue;
+
+                return {
+                    qqList: qqList,
+                    invalidQQs: invalidQQs,
+                    bulletType: bulletType,
+                    techCenter: techCenter,
+                    armor: armor,
+                    medicine: medicine,
+                    count: qqList.length,
+                    timestamp: new Date().toLocaleString()
+                };
+            }
+
+            // ---- 验证数据 ----
+            function validateData(data) {
+                var errors = [];
+                if (data.qqList.length === 0) {
+                    errors.push('至少添加一个有效的QQ号');
+                }
+                if (data.invalidQQs.length > 0) {
+                    errors.push('以下QQ号格式不正确：' + data.invalidQQs.join('、'));
+                }
+                if (data.bulletType && !isValidBulletType(data.bulletType)) {
+                    errors.push('子弹型号格式不正确（如 5.56×45）');
+                }
+                return errors;
+            }
+
+            // ---- 保存 ----
+            function saveData() {
+                var data = getConfigData();
+                var errors = validateData(data);
+                if (errors.length > 0) {
+                    showToast('' + errors.join('；'), 'error', 3500);
+                    return;
+                }
+
+                var saveData = {
+                    timestamp: data.timestamp,
+                    qqList: data.qqList,
+                    count: data.count,
+                    bulletType: data.bulletType || '',
+                    techCenter: data.techCenter || '',
+                    armor: data.armor || '',
+                    medicine: data.medicine || ''
+                };
+
+                try {
+                    localStorage.setItem('configData', JSON.stringify(saveData));
+                    console.log('数据已保存到 localStorage');
+                } catch (e) {
+                    console.warn('localStorage 保存失败:', e);
+                }
+
+                try {
+                    if (typeof airscript !== 'undefined' && airscript.call) {
+                        var jsonData = JSON.stringify(data);
+                        airscript.call('config_data', jsonData);
+                        showToast('数据已发送，等待确认...', 'info', 1800);
+                        updateStatus('waiting', '等待 Python 确认接收...');
+                    } else {
+                        showToast('未连接到 Python 服务', 'error', 1800);
+                        updateStatus('error', '未连接到 Python 服务');
+                    }
+                } catch (e) {
+                    console.error('发送失败:', e);
+                    showToast('发送失败: ' + e.message, 'error', 2500);
+                    updateStatus('error', '发送失败: ' + e.message);
+                }
+            }
+
+            // ---- 接收 Python ----
+            window.receiveFromPython = function(key, data) {
+                console.log('收到Python消息 [', key, ']:', data);
+                try {
+                    var parsed = (typeof data === 'string') ? JSON.parse(data) : data;
+                    if (key === 'config_confirm') {
+                        if (parsed.status === 'success') {
+                            showToast(parsed.message, 'success', 1800);
+                            updateStatus('success', parsed.message);
+                            setTimeout(function() {
+                                try {
+                                    if (typeof airscript !== 'undefined' && airscript.close) {
+                                        airscript.close();
+                                    } else {
+                                        window.close();
+                                    }
+                                } catch (e) {
+                                    console.log('关闭窗口失败:', e);
+                                }
+                            }, 1000);
+                        } else {
+                            showToast(parsed.message, 'error', 2500);
+                            updateStatus('error', parsed.message);
+                        }
+                    } else {
+                        console.log('未知消息:', key, parsed);
+                    }
+                } catch (e) {
+                    console.error('解析消息失败:', e);
+                    showToast('解析消息失败', 'error', 1800);
+                }
+            };
+
+            // ---- 自定义下拉事件 ----
+            function initCustomSelect() {
+                const container = document.getElementById('medicineSelect');
+                const display = medicineDisplay;
+                const options = medicineOptions;
+
+                // 点击显示/隐藏
+                display.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = options.classList.contains('show');
+                    if (isOpen) {
+                        options.classList.remove('show');
+                        display.classList.remove('active');
+                    } else {
+                        options.classList.add('show');
+                        display.classList.add('active');
+                    }
+                });
+
+                // 选项点击
+                optionItems.forEach(function(item) {
+                    item.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const value = this.getAttribute('data-value');
+                        medicineValue = value;
+                        display.textContent = value;
+                        // 更新选中样式
+                        optionItems.forEach(function(opt) {
+                            opt.classList.remove('selected-opt');
+                        });
+                        this.classList.add('selected-opt');
+                        // 关闭下拉
+                        options.classList.remove('show');
+                        display.classList.remove('active');
+                    });
+                });
+
+                // 点击外部关闭
+                document.addEventListener('click', function(e) {
+                    if (!container.contains(e.target)) {
+                        options.classList.remove('show');
+                        display.classList.remove('active');
+                    }
+                });
+
+                // 设置初始值
+                medicineValue = '红头修';
+                display.textContent = '红头修';
+                optionItems.forEach(function(opt) {
+                    if (opt.getAttribute('data-value') === '红头修') {
+                        opt.classList.add('selected-opt');
+                    } else {
+                        opt.classList.remove('selected-opt');
+                    }
+                });
+            }
+
+            // ---- 绑定事件 ----
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('addAccountBtn').addEventListener('click', function() {
+                    addAccount();
+                });
+                document.getElementById('clearAllBtn').addEventListener('click', function() {
+                    clearAllAccounts();
+                });
+                document.getElementById('saveBtn').addEventListener('click', function() {
+                    saveData();
+                });
+
+                initCustomSelect();
+
+                // 检测 Python 连接
+                setTimeout(function() {
+                    try {
+                        if (typeof airscript !== 'undefined' && airscript.call) {
+                            updateStatus('waiting', '已连接到 Python，请配置数据');
+                        } else {
+                            updateStatus('error', '未连接到 Python');
+                        }
+                    } catch (e) {
+                        updateStatus('error', '连接检测失败');
+                    }
+                }, 400);
+            });
+
+            // ---- 快捷键 ----
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    saveData();
+                }
+                if (e.key === 'Escape') {
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                    // 关闭下拉
+                    document.getElementById('medicineOptions').classList.remove('show');
+                    document.getElementById('medicineDisplay').classList.remove('active');
+                }
+            });
+
+            // ---- 从 localStorage 加载 ----
+            function loadFromStorage() {
+                try {
+                    var raw = localStorage.getItem('configData');
+                    if (!raw) return;
+                    var data = JSON.parse(raw);
+                    if (data.qqList && data.qqList.length > 0) {
+                        accounts = [];
+                        idCounter = 0;
+                        data.qqList.forEach(function(q) {
+                            if (q.trim()) {
+                                accounts.push({ id: ++idCounter, qq: q.trim() });
+                            }
+                        });
+                        renderList();
+                    }
+                    if (data.bulletType) {
+                        document.getElementById('bulletType').value = data.bulletType;
+                    } else {
+                        document.getElementById('bulletType').value = '5.56×45';
+                    }
+                    if (data.techCenter !== undefined) {
+                        document.getElementById('techCenter').value = data.techCenter || '';
+                    }
+                    if (data.armor !== undefined) {
+                        document.getElementById('armor').value = data.armor || '';
+                    }
+                    if (data.medicine) {
+                        medicineValue = data.medicine;
+                        medicineDisplay.textContent = data.medicine;
+                        optionItems.forEach(function(opt) {
+                            opt.classList.remove('selected-opt');
+                            if (opt.getAttribute('data-value') === data.medicine) {
+                                opt.classList.add('selected-opt');
+                            }
+                        });
+                    }
+                    console.log('从 localStorage 加载成功');
+                } catch (e) {
+                    console.warn('加载 localStorage 失败:', e);
+                }
+            }
+
+            // ---- 初始化 ----
+            loadFromStorage();
+            if (accounts.length === 0) {
+                addAccount('123456789');
+                addAccount('987654321');
+            }
+        })();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            /* 半透明黑色背景，经典日志窗口风格 */
+            background: rgba(0, 0, 0, 0.7); 
+            /* 默认绿色字体 */
+            color: #00FF00; 
+            font-family: monospace; /* 等宽字体，排版更整齐 */
+            font-size: 12px;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            /* 防止文字被选中 */
+            -webkit-user-select: none; 
+            user-select: none; 
+        }
+        #log-container {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; /* 允许垂直滚动 */
+            padding: 5px;
+            word-break: break-all; /* 强制换行，防止长文本撑破窗口 */
+        }
+        /* 隐藏滚动条但保留滚动功能 */
+        #log-container::-webkit-scrollbar {
+            display: none;
+        }
+        .log-item {
+            margin-bottom: 3px;
+            line-height: 1.4;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+        .log-error {
+            color: #FF3030;
+        }
+        .log-warn {
+            color: #FFD700;
+        }
+        .log-info {
+            color: #00FF00;
+        }
+        .log-debug {
+            color: #1E90FF;
+        }
+    </style>
+</head>
+<body>
+    <div id="log-container"></div>
+
+    <script>
+        var logContainer = document.getElementById('log-container');
+
+        // 1. 提供给 Python 调用的添加日志方法
+        // 参数1：message (日志内容)
+        // 参数2：type (日志类型：info, warn, error, debug)
+        function addLog(message, type) {
+            type = type || 'info';
+            var div = document.createElement('div');
+            div.className = 'log-item log-' + type;
+            
+            // 获取当前时间
+            var now = new Date();
+            var time = now.getHours().toString().padStart(2, '0') + ':' + 
+                       now.getMinutes().toString().padStart(2, '0') + ':' + 
+                       now.getSeconds().toString().padStart(2, '0');
+            
+            div.innerText = '[' + time + '] [' + type.toUpperCase() + '] ' + message;
+            logContainer.appendChild(div);
+            
+            // 自动滚动到底部
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 2. 清空日志方法
+        function clearLog() {
+            logContainer.innerHTML = '';
+        }
+
+        // 3. 测试：页面加载时显示一条欢迎信息
+        addLog("自定义日志窗口已启动...", "info");
+
+        // 4. 如果需要通过 JS 向 Python 发送消息 (tunner通道)
+        // 假设点击窗口触发消息
+        document.body.addEventListener('click', function() {
+            // 这里的调用方式取决于 AScript 的 JS 桥接 API
+            // 通常是类似 airscript.call("tunner_name", data)
+            // 例如: window.airscript.call("test", "我被点击了");
+        });
+    </script>
+</body>
+</html>
